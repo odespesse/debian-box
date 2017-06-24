@@ -1,0 +1,59 @@
+{
+  "builders": [
+    {
+      "boot_command": [
+        "<esc><wait>",
+        "install <wait>",
+        "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg <wait>",
+        "debian-installer=fr_FR <wait>",
+        "auto <wait>",
+        "locale=fr_FR <wait>",
+        "kbd-chooser/method=fr <wait>",
+        "netcfg/get_hostname={{ .Name }} <wait>",
+        "netcfg/get_domain= <wait>",
+        "fb=false <wait>",
+        "debconf/frontend=noninteractive <wait>",
+        "console-setup/ask_detect=false <wait>",
+        "console-keymaps-at/keymap=fr <wait>",
+        "keyboard-configuration/xkb-keymap=fr <wait>",
+        "<enter><wait>"
+      ],
+      "type": "virtualbox-iso",
+      "guest_os_type": "Debian_64",
+      "vm_name": "devnode",
+      "headless": "true",
+      "http_directory": "http",
+      "iso_url": "http://cdimage.debian.org/debian-cd/8.7.1/amd64/iso-cd/debian-8.7.1-amd64-netinst.iso",
+      "iso_checksum": "749a15b7690769dd99e85d6104182a03d370b04b36106ec7cfaf6a551aa89fb4",
+      "iso_checksum_type": "sha256",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "3600s",
+      "disk_size": "20000",
+      "shutdown_command": "echo 'vagrant' | sudo -S shutdown -hP now",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "512"],
+        ["modifyvm", "{{.Name}}", "--cpus", "1"]
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "install-ansible.sh",
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'"
+    },
+    {
+      "type": "ansible-local",
+      "role_paths" : "./debian-box",
+      "playbook_file": "local.yml"
+    }
+  ],
+  "post-processors": [
+    {
+      "output": "debian-8-amd64_virtualbox.box",
+      "compression_level": "9",
+      "type": "vagrant"
+    }
+  ]
+}
