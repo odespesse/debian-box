@@ -1,0 +1,170 @@
+---
+- name: Add repos in source.list
+  become: yes
+  apt_repository: repo="{{ item }}" state=present update_cache=yes
+  with_items:
+    - 'deb http://ftp.fr.debian.org/debian buster main non-free contrib'
+    - 'deb http://security.debian.org/ buster/updates main contrib non-free'
+    - 'deb http://ftp.fr.debian.org/debian buster-updates main contrib non-free'
+
+- name: Install tools
+  become: yes
+  apt:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: yes
+    cache_valid_time: 3600
+  vars:
+    packages:
+      - curl
+      - htop
+      - less
+      - lsof
+      - ltrace
+      - nano
+      - ntp
+      - openssh-server
+      - p7zip-full
+      - p7zip-rar
+      - rsync
+      - strace
+      - sudo
+      - tree
+      - unzip
+      - vim
+      - wget
+      - zip
+
+- name: Configure vimrc for vagrant
+  copy:
+    src: vimrc
+    dest: /home/vagrant/.vimrc
+    owner: vagrant
+    group: vagrant
+
+- name: Install Vim tools
+  become: yes
+  apt:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: yes
+    cache_valid_time: 3600
+  vars:
+    packages:
+      - vim-airline
+      - vim-pathogen
+
+- name: Configure vimrc for root
+  become: yes
+  copy:
+    src: vimrc
+    dest: /root/.vimrc
+
+- name: Install addition guest dependencies
+  become: yes
+  apt:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: yes
+    cache_valid_time: 3600
+  vars:
+    packages:
+      - dkms
+      - build-essential
+      - linux-headers-{{ ansible_kernel }}
+
+- name: Mount VirtualBox guest additions ISO
+  become: yes
+  mount:
+    name: /tmp/vbox
+    src: /home/vagrant/VBoxGuestAdditions.iso
+    opts: loop
+    state: mounted
+    fstype: iso9660
+
+- name: Run VirtualBox guest additions installation
+  become: yes
+  shell: sh /tmp/vbox/VBoxLinuxAdditions.run
+  register: result
+  failed_when: result.rc > 2
+
+- name: Unmount VirtualBox guest additions ISO
+  become: yes
+  mount:
+    name: /tmp/vbox
+    src: /home/vagrant/VBoxGuestAdditions.iso
+    opts: loop
+    state: absent
+    fstype: iso9660
+
+- name: Delete addition guest dependencies
+  become: yes
+  apt:
+    name: "{{ packages }}"
+    state: absent
+    update_cache: yes
+    cache_valid_time: 3600
+  vars:
+    packages:
+      - dkms
+      - build-essential
+      - linux-headers-{{ ansible_kernel }}
+
+- name: Delete ISO file of VirtuakBox guest additions
+  file: state=absent path=/home/vagrant/VBoxGuestAdditions.iso
+
+- name: Configure SSH service
+  become: yes
+  lineinfile: dest=/etc/ssh/sshd_config regexp='^UseDNS' line='UseDNS no'
+
+- name: Authorize the vagrant SSH key
+  become: yes
+  authorized_key: user=vagrant key="{{ lookup('file', 'vagrant.pub') }}"
+
+- name: Create vagrant home directory
+  become: yes
+  file:
+    state: directory
+    path: /home/vagrant
+    owner: vagrant
+    group: vagrant
+
+- name: Create vagrant skel directory
+  become: yes
+  file:
+    state: directory
+    path: /etc/skel
+    owner: root
+    group: root
+
+- name: Configure users .bashrc
+  become: yes
+  copy: src=users.bashrc dest="{{ item }}/.bashrc"
+  with_items:
+    - /home/vagrant
+    - /etc/skel
+
+- name: Configure root .bashrc
+  become: yes
+  copy:
+    src: root.bashrc
+    dest: /root/.bashrc
+    owner: root
+    group: root
+
+- name: Create shared directory
+  become: yes
+  file:
+    state: directory
+    path: /vagrant
+    owner: vagrant
+    group: vagrant
+
+- name: Cleanup log files
+  become: yes
+  shell: find /var/log -type f | while read f; do echo -ne '' > $f; done;
+
+- name: Whiteout root
+  shell: dd if=/dev/zero of=/tmp/whitespace bs=1024 && rm /tmp/whitespace
+  ignore_errors: yes
+

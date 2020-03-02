@@ -1,0 +1,39 @@
+set nocompatible " This must be first, because it changes other options as side effect
+
+set encoding=utf-8 " File encoding
+
+syntax on            " Syntax highlight
+set hidden           " Hide buffer instead of closing it
+set number           " show lines numbers
+set title            " Change the terminal's title
+set history=1000     " Remember more commands and search history
+set undolevels=1000  " Use many muchos levels of undo
+set wildignore=*.swp,*~,*.bak,*.pyc,*.class,.* " Files to ignore when expanding wildcards
+set pastetoggle=<F2> " Key to paste text as is
+set paste            " Enable paste mode by default
+
+"Indent stuff
+set expandtab     " Convert TAB to SPACES when pressing TAB key
+set tabstop=4     " A tab is four spaces
+set autoindent    " Keep same indentation from previous line
+set smartindent   " Add indentation according to context on certain file types
+set copyindent    " Copy what char indentation used on the previous line
+set shiftwidth=4  " Number of spaces to use for autoindenting
+
+set showmatch     " Set show matching parenthesis
+
+" Search
+set ignorecase  " Ignore case when searching
+set smartcase   " Ignore case if search pattern is all lowercase (because of ignorecase option),
+                "    case-sensitive otherwise
+set hlsearch    " Highlight search terms
+set incsearch   " Show search matches as you type
+
+" Configure directories tree
+let g:netrw_liststyle=3 " Directories tree display
+let g:netrw_list_hide= '\(^\|\s\s\)\zs\.\S\+' " List of files to hide
+let g:netrw_hide=1 " Activate the hidding
+let g:netrw_keepdir=0 " Keep the selected directory as the current one
+
+execute pathogen#infect()
+
