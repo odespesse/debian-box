@@ -11,14 +11,15 @@ set undolevels=1000  " Use many muchos levels of undo
 set wildignore=*.swp,*~,*.bak,*.pyc,*.class,.* " Files to ignore when expanding wildcards
 set pastetoggle=<F2> " Key to paste text as is
 set paste            " Enable paste mode by default
+set nrformats=       " Number format is decimal even with leading 0
 
 "Indent stuff
 set expandtab     " Convert TAB to SPACES when pressing TAB key
-set tabstop=4     " A tab is four spaces
+set tabstop=2     " A tab is four spaces
 set autoindent    " Keep same indentation from previous line
 set smartindent   " Add indentation according to context on certain file types
 set copyindent    " Copy what char indentation used on the previous line
-set shiftwidth=4  " Number of spaces to use for autoindenting
+set shiftwidth=2  " Number of spaces to use for autoindenting
 
 set showmatch     " Set show matching parenthesis
 
@@ -29,11 +30,17 @@ set smartcase   " Ignore case if search pattern is all lowercase (because of ign
 set hlsearch    " Highlight search terms
 set incsearch   " Show search matches as you type
 
+set path=**
+
 " Configure directories tree
 let g:netrw_liststyle=3 " Directories tree display
 let g:netrw_list_hide= '\(^\|\s\s\)\zs\.\S\+' " List of files to hide
 let g:netrw_hide=1 " Activate the hidding
 let g:netrw_keepdir=0 " Keep the selected directory as the current one
+
+" Enable internal plugins
+filetype plugin on
+runtime macros/matchit.vim  " Use the matching % for programming languages as well
 
 execute pathogen#infect()
 
